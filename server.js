@@ -331,13 +331,15 @@ module.exports = nextConfig;
 
 function getNpmCommand() {
   if (IS_WINDOWS) return 'npm.cmd';
-  return 'npm';
+  return '/usr/bin/env npm';  // Mais confiável em Linux/Render
 }
 
 function runCommand(command, args, cwd, jobId) {
   return new Promise((resolve, reject) => {
+    // Usa getNpmCommand() para npm
+    const actualCommand = command === 'npm' ? getNpmCommand() : command;
     // Constrói comando como string (mais confiável com shell)
-    const fullCommand = `${command} ${args.join(' ')}`;
+    const fullCommand = `${actualCommand} ${args.join(' ')}`;
 
     const job = jobStatus.get(jobId);
     if (job) job.logs.push(`$ ${fullCommand}`);
