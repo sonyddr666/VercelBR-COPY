@@ -449,6 +449,7 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
       // Instala todas as deps (incluindo devDeps para build tools)
       await runCommand('npm', [
         'install',
+        '--production=false', // Força dev deps (necessário no Render)
         '--prefer-offline',
         '--no-audit',
         '--no-fund',
