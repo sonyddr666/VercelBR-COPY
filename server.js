@@ -73,6 +73,9 @@ try {
 // 2. SEGURANÇA: HELMET + RATE LIMITING
 // ═══════════════════════════════════════════════════════════════════
 
+// Trust proxy (necessário para Render e outros serviços com reverse proxy)
+app.set('trust proxy', 1);
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
