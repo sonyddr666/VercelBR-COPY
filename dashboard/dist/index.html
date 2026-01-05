@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vercel BR - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --border: #2a2a3a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --accent: #667eea;
+      --accent-hover: #764ba2;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+    }
+
+    .badge {
+      background: var(--success);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tab:hover,
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.6;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+    }
+
+    /* Status */
+    .status-card {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .status-card.visible {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .logs {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .log-line {
+      color: var(--text-secondary);
+      padding: 2px 0;
+    }
+
+    .log-line.success {
+      color: var(--success);
+    }
+
+    .log-line.error {
+      color: var(--error);
+    }
+
+    .log-line.warning {
+      color: var(--warning);
+    }
+
+    /* Projects Grid */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .project-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .project-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .project-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .project-meta {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 15px;
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .project-actions a,
+    .project-actions button {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .project-actions a {
+      background: var(--accent);
+      color: white;
+    }
+
+    .project-actions button {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .project-actions button:hover {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 1000;
+      animation: slideIn 0.3s;
+    }
+
+    .toast.visible {
+      display: flex;
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
+
+    .toast.error {
+      border-color: var(--error);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🚀</span>
+        <span>Vercel BR</span>
+        <span class="badge">v2.2</span>
+      </div>
+      <a href="/health" target="_blank" class="badge" style="background: var(--success); text-decoration: none;">
+        💚 Sistema Operacional
+      </a>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('deploy')">🚀 Novo Deploy</button>
+      <button class="tab" onclick="showTab('projects')">📂 Projetos</button>
+    </div>
+
+    <!-- Deploy Tab -->
+    <div id="deploy-tab">
+      <div class="card">
+        <h2 class="card-title">🚀 Deploy de Novo Projeto</h2>
+
+        <form id="deploy-form" onsubmit="handleDeploy(event)">
+          <div class="form-group">
+            <label for="projectId">ID do Projeto *</label>
+            <input type="text" id="projectId" name="projectId" placeholder="meu-site-legal" required
+              pattern="[a-zA-Z0-9_-]+">
+            <p class="hint">Apenas letras, números, hífen e underscore. URL será: /projects/meu-site-legal</p>
+          </div>
+
+          <div class="form-group">
+            <label for="repoUrl">URL do Repositório GitHub *</label>
+            <input type="url" id="repoUrl" name="repoUrl" placeholder="https://github.com/usuario/repositorio" required>
+            <p class="hint">Repositório público do GitHub</p>
+          </div>
+
+          <div class="form-group">
+            <label for="branch">Branch</label>
+            <input type="text" id="branch" name="branch" placeholder="main" value="main">
+          </div>
+
+          <button type="submit" class="btn" id="deploy-btn">
+            <span>🚀</span>
+            <span>Iniciar Deploy</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Status Card -->
+      <div class="card status-card" id="status-card">
+        <h2 class="card-title">
+          <span id="status-icon">⏳</span>
+          <span id="status-title">Status do Deploy</span>
+        </h2>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress" style="width: 0%"></div>
+        </div>
+
+        <p id="status-text" style="margin-bottom: 15px; color: var(--text-secondary);">Aguardando...</p>
+
+        <div class="logs" id="logs"></div>
+
+        <div id="deploy-result" style="margin-top: 15px; display: none;">
+          <a href="#" id="project-link" target="_blank" class="btn" style="text-decoration: none;">
+            🌐 Acessar Projeto
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Tab -->
+    <div id="projects-tab" style="display: none;">
+      <div class="card">
+        <h2 class="card-title">📂 Projetos Deployados</h2>
+        <button class="btn btn-secondary" onclick="loadProjects()" style="margin-bottom: 20px; width: auto;">
+          🔄 Atualizar Lista
+        </button>
+      </div>
+
+      <div id="projects-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <h3>Nenhum projeto ainda</h3>
+          <p>Faça seu primeiro deploy na aba "Novo Deploy"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toast-icon">✅</span>
+    <span id="toast-message"></span>
+  </div>
+
+  <script>
+    // State
+    let currentJobId = null;
+    let pollInterval = null;
+
+    // Tab switching
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
+
+      document.getElementById('deploy-tab').style.display = tab === 'deploy' ? 'block' : 'none';
+      document.getElementById('projects-tab').style.display = tab === 'projects' ? 'block' : 'none';
+
+      if (tab === 'projects') {
+        loadProjects();
+      }
+    }
+
+    // Toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const msg = document.getElementById('toast-message');
+
+      icon.textContent = type === 'success' ? '✅' : '❌';
+      msg.textContent = message;
+      toast.className = `toast visible ${type}`;
+
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 4000);
+    }
+
+    // Deploy
+    async function handleDeploy(e) {
+      e.preventDefault();
+
+      const btn = document.getElementById('deploy-btn');
+      const form = document.getElementById('deploy-form');
+
+      const data = {
+        projectId: form.projectId.value.trim(),
+        repoUrl: form.repoUrl.value.trim(),
+        branch: form.branch.value.trim() || 'main'
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span><span>Iniciando...</span>';
+
+      try {
+        const res = await fetch('/api/projects/deploy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          currentJobId = result.jobId;
+          showStatusCard();
+          startPolling();
+          showToast('Deploy iniciado!');
+        } else {
+          throw new Error(result.error || 'Erro ao iniciar deploy');
+        }
+      } catch (error) {
+        showToast(error.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
+      }
+    }
+
+    function showStatusCard() {
+      document.getElementById('status-card').classList.add('visible');
+      document.getElementById('deploy-result').style.display = 'none';
+      document.getElementById('logs').innerHTML = '';
+      document.getElementById('progress').style.width = '0%';
+    }
+
+    function startPolling() {
+      pollInterval = setInterval(checkStatus, 2000);
+    }
+
+    async function checkStatus() {
+      if (!currentJobId) return;
+
+      try {
+        const res = await fetch(`/api/deploy-status/${currentJobId}`);
+        const status = await res.json();
+
+        // Update UI
+        document.getElementById('progress').style.width = `${status.progress}%`;
+        document.getElementById('status-text').textContent = `Status: ${status.status} (${status.progress}%)`;
+
+        // Update logs
+        const logsEl = document.getElementById('logs');
+        logsEl.innerHTML = status.logs.map(log => {
+          let cls = '';
+          if (log.includes('✅')) cls = 'success';
+          else if (log.includes('❌')) cls = 'error';
+          else if (log.includes('⚠️')) cls = 'warning';
+          return `<div class="log-line ${cls}">${log}</div>`;
+        }).join('');
+        logsEl.scrollTop = logsEl.scrollHeight;
+
+        // Update icon
+        const icons = {
+          queued: '⏳',
+          cloning: '📦',
+          detecting: '🔍',
+          installing: '📥',
+          building: '🔨',
+          deploying: '📤',
+          completed: '✅',
+          failed: '❌'
+        };
+        document.getElementById('status-icon').textContent = icons[status.status] || '⏳';
+        document.getElementById('status-title').textContent =
+          status.status === 'completed' ? 'Deploy Concluído!' :
+            status.status === 'failed' ? 'Deploy Falhou' :
+              'Status do Deploy';
+
+        // Check completion
+        if (status.status === 'completed') {
+          clearInterval(pollInterval);
+          document.getElementById('deploy-result').style.display = 'block';
+          document.getElementById('project-link').href = status.url;
+          document.getElementById('deploy-btn').disabled = false;
+          document.getElementById('deploy-btn').innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
+          showToast('Deploy concluído com sucesso!');
+        } else if (status.status === 'failed') {
+          clearInterval(pollInterval);
+          document.getElementById('deploy-btn').disabled = false;
+          document.getElementById('deploy-btn').innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
+          showToast('Deploy falhou: ' + status.error, 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status:', error);
+      }
+    }
+
+    // Load projects
+    async function loadProjects() {
+      const listEl = document.getElementById('projects-list');
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Carregando...</p></div>';
+
+      try {
+        const res = await fetch('/api/projects');
+        const projects = await res.json();
+
+        if (projects.length === 0) {
+          listEl.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>Nenhum projeto ainda</h3>
+              <p>Faça seu primeiro deploy na aba "Novo Deploy"</p>
+            </div>
+          `;
+          return;
+        }
+
+        listEl.innerHTML = `
+          <div class="projects-grid">
+            ${projects.map(p => `
+              <div class="project-card">
+                <div class="project-name">
+                  📂 ${p.id}
+                </div>
+                <div class="project-meta">
+                  ${p.projectType ? `<span>🏷️ ${p.projectType}</span> · ` : ''}
+                  ${p.deployedAt ? `📅 ${new Date(p.deployedAt).toLocaleDateString('pt-BR')}` : 'Sem data'}
+                </div>
+                <div class="project-actions">
+                  <a href="${p.url}" target="_blank">🌐 Abrir</a>
+                  <button onclick="deleteProject('${p.id}')">🗑️ Remover</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (error) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">❌</div>
+            <h3>Erro ao carregar</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Delete project
+    async function deleteProject(projectId) {
+      if (!confirm(`Remover projeto "${projectId}"?`)) return;
+
+      try {
+        const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+
+        if (res.ok) {
+          showToast('Projeto removido');
+          loadProjects();
+        } else {
+          const data = await res.json();
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+  </script>
+</body>
+
+</html>

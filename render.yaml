@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: vercel-br
+    env: node
+    region: oregon
+    plan: free
+    
+    # Build Pipeline (8GB RAM disponível no build)
+    buildCommand: |
+      echo "🔧 Instalando dependências do servidor..."
+      npm install --production --prefer-offline --no-audit --no-fund
+      
+      echo "🎨 Verificando dashboard..."
+      if [ -d "dashboard" ] && [ -f "dashboard/package.json" ]; then
+        cd dashboard
+        echo "📦 Instalando deps do dashboard..."
+        npm install --prefer-offline --no-audit --no-fund
+        echo "🔨 Buildando dashboard..."
+        npm run build
+        cd ..
+        echo "✅ Dashboard pronto"
+      else
+        echo "⚠️  Dashboard não encontrado, usando placeholder..."
+      fi
+      
+      echo "✅ Build completo"
+    
+    # Runtime (Free tier = 512MB RAM)
+    startCommand: node server.js
+    
+    # Health check endpoint
+    healthCheckPath: /health
+    
+    # Variáveis de ambiente
+    envVars:
+      - key: NODE_ENV
+        value: production
+      
+      # Limita heap do Node para não exceder 512MB
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=400
+      
+      # API Secret - DEFINIR MANUALMENTE no dashboard do Render!
+      - key: API_SECRET
+        sync: false
+      
+      # GitHub Token (opcional, para repos privados)
+      - key: GITHUB_TOKEN
+        sync: false
+    
+    # Disco persistente para projetos deployados
+    disk:
+      name: projects-storage
+      mountPath: /opt/render/project/src/projects
+      sizeGB: 10
