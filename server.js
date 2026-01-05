@@ -336,14 +336,19 @@ function getNpmCommand() {
 
 function runCommand(command, args, cwd, jobId) {
   return new Promise((resolve, reject) => {
-    const finalCommand = command === 'npm' ? getNpmCommand() : command;
+    // Constrói comando como string (mais confiável com shell)
+    const fullCommand = `${command} ${args.join(' ')}`;
 
-    const child = spawn(finalCommand, args, {
+    const job = jobStatus.get(jobId);
+    if (job) job.logs.push(`$ ${fullCommand}`);
+
+    const child = spawn(fullCommand, [], {
       cwd,
       stdio: 'pipe',
-      shell: true, // Necessário para encontrar npm no PATH (Windows e Linux)
+      shell: true,
       env: {
         ...process.env,
+        PATH: process.env.PATH,
         NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=400'
       }
     });
@@ -354,7 +359,6 @@ function runCommand(command, args, cwd, jobId) {
       const text = data.toString().trim();
       if (text) {
         output += text + '\n';
-        const job = jobStatus.get(jobId);
         if (job) job.logs.push(text);
       }
     });
@@ -363,8 +367,7 @@ function runCommand(command, args, cwd, jobId) {
       const text = data.toString().trim();
       if (text) {
         output += text + '\n';
-        const job = jobStatus.get(jobId);
-        if (job) job.logs.push(`⚠️  ${text}`);
+        if (job) job.logs.push(`⚠️ ${text}`);
       }
     });
 
@@ -372,7 +375,7 @@ function runCommand(command, args, cwd, jobId) {
       if (code === 0) {
         resolve(output);
       } else {
-        reject(new Error(`'${finalCommand} ${args.join(' ')}' falhou (código ${code})`));
+        reject(new Error(`'${fullCommand}' falhou (código ${code})`));
       }
     });
 
