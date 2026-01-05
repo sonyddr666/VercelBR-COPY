@@ -398,6 +398,23 @@
     <div class="tabs">
       <button class="tab active" onclick="showTab('deploy')">🚀 Novo Deploy</button>
       <button class="tab" onclick="showTab('projects')">📂 Projetos</button>
+      <button class="tab" onclick="showTab('settings')">⚙️ Config</button>
+    </div>
+
+    <!-- Settings Tab (API Secret) -->
+    <div id="settings-tab" style="display: none;">
+      <div class="card">
+        <h2 class="card-title">🔐 Configuração de Autenticação</h2>
+        <div class="form-group">
+          <label for="apiSecret">API Secret (para produção)</label>
+          <input type="password" id="apiSecret" placeholder="Sua chave API_SECRET do Render"
+            oninput="saveApiSecret(this.value)">
+          <p class="hint">Em produção, coloque aqui a mesma senha definida no Render. Localmente, deixe vazio.</p>
+        </div>
+        <p style="color: var(--success); font-size: 0.9rem;" id="auth-status">
+          🔓 Modo desenvolvimento (sem autenticação)
+        </p>
+      </div>
     </div>
 
     <!-- Deploy Tab -->
@@ -483,6 +500,44 @@
     // State
     let currentJobId = null;
     let pollInterval = null;
+    let apiSecret = localStorage.getItem('vercel_br_api_secret') || '';
+
+    // Carrega API Secret salvo
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('apiSecret');
+      if (input && apiSecret) {
+        input.value = apiSecret;
+        updateAuthStatus();
+      }
+    });
+
+    // Salva API Secret
+    function saveApiSecret(value) {
+      apiSecret = value;
+      localStorage.setItem('vercel_br_api_secret', value);
+      updateAuthStatus();
+    }
+
+    // Atualiza status de auth
+    function updateAuthStatus() {
+      const status = document.getElementById('auth-status');
+      if (apiSecret) {
+        status.innerHTML = '🔒 Autenticação configurada';
+        status.style.color = 'var(--success)';
+      } else {
+        status.innerHTML = '🔓 Modo desenvolvimento (sem autenticação)';
+        status.style.color = 'var(--warning)';
+      }
+    }
+
+    // Headers com autenticação
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (apiSecret) {
+        headers['Authorization'] = `Bearer ${apiSecret}`;
+      }
+      return headers;
+    }
 
     // Tab switching
     function showTab(tab) {
@@ -491,6 +546,7 @@
 
       document.getElementById('deploy-tab').style.display = tab === 'deploy' ? 'block' : 'none';
       document.getElementById('projects-tab').style.display = tab === 'projects' ? 'block' : 'none';
+      document.getElementById('settings-tab').style.display = tab === 'settings' ? 'block' : 'none';
 
       if (tab === 'projects') {
         loadProjects();
@@ -531,7 +587,7 @@
       try {
         const res = await fetch('/api/projects/deploy', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(data)
         });
 
@@ -627,7 +683,7 @@
       listEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Carregando...</p></div>';
 
       try {
-        const res = await fetch('/api/projects');
+        const res = await fetch('/api/projects', { headers: getAuthHeaders() });
         const projects = await res.json();
 
         if (projects.length === 0) {
@@ -676,7 +732,10 @@
       if (!confirm(`Remover projeto "${projectId}"?`)) return;
 
       try {
-        const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+        const res = await fetch(`/api/projects/${projectId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
 
         if (res.ok) {
           showToast('Projeto removido');
