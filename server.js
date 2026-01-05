@@ -341,7 +341,7 @@ function runCommand(command, args, cwd, jobId) {
     const child = spawn(finalCommand, args, {
       cwd,
       stdio: 'pipe',
-      shell: IS_WINDOWS,
+      shell: true, // Necessário para encontrar npm no PATH (Windows e Linux)
       env: {
         ...process.env,
         NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=400'
