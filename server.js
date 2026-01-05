@@ -443,20 +443,22 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
         ...jobStatus.get(jobId),
         status: 'installing',
         progress: 40,
-        logs: [...jobStatus.get(jobId).logs, '📥 Instalando dependências...']
+        logs: [...jobStatus.get(jobId).logs, '📥 Instalando dependências (prod + dev)...']
       });
 
-      // Instala todas as deps (incluindo devDeps para build tools)
+      // 🔧 CORREÇÃO: Força instalação de devDependencies
+      // Render não instala devDeps em produção por padrão,
+      // mas build tools (vite, webpack, etc) estão em devDependencies
       await runCommand('npm', [
         'install',
-        '--production=false', // Força dev deps (necessário no Render)
+        '--production=false',  // ← FIX: Força instalação de dev deps
         '--prefer-offline',
         '--no-audit',
         '--no-fund',
         '--maxsockets=1',
       ], tempPath, jobId);
 
-      jobStatus.get(jobId).logs.push('✅ Dependências instaladas');
+      jobStatus.get(jobId).logs.push('✅ Dependências instaladas (prod + dev)');
     }
 
     // Build
