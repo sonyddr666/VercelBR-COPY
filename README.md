@@ -40,6 +40,8 @@ Plataforma de deploy **self-hosted** otimizada para o free tier do Render.com. P
 5. **Build Command:** `npm install`
 6. **Start Command:** `npm start`
 
+Exemplo Acesse: `https://vercelbr-copy.onrender.com/`
+
 ### 🔑 Autenticação no Dashboard
 
 Ao acessar o dashboard em produção (`/admin`), vá na aba **⚙️ Config** e insira a mesma `API_SECRET` que você definiu nas variáveis de ambiente do Render.
@@ -69,3 +71,4 @@ O sistema detecta automaticamente:
 
 **Status: undefined:**
 - Se o deploy falhar drasticamente, o status pode não ser capturado. Verifique os logs do Render Dashboard para detalhes.
+
