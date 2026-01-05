@@ -1,73 +1,71 @@
-# Vercel BR
+# 🚀 Vercel BR v2.2 (Render Edition)
 
-Plataforma de deploy all-in-one otimizada para Render.com free tier.
+Plataforma de deploy **self-hosted** otimizada para o free tier do Render.com. Permite fazer deploy de projetos estáticos (React, Vue, Astro, HTML) e Node.js diretamente do GitHub.
 
-## 🚀 Quick Start
+## ✨ Novidades v2.2
+- **Dashboard Seguro:** Nova aba "Config" para gerenciar sua API Key.
+- **Render Optimized:** Correções para proxy reverso e instalação de dependências.
+- **Build Fix:** Suporte total a `devDependencies` (Vite, Webpack, Gulp) mesmo em ambiente de produção.
 
-```bash
-# 1. Instalar dependências
-npm install
+## 🛠️ Quick Start (Local)
 
-# 2. Configurar ambiente
-cp .env.example .env
-# Edite .env e defina API_SECRET
+1. **Instalar Dependências**
+   ```bash
+   npm install
+   ```
 
-# 3. Rodar servidor
-npm start
-```
+2. **Configurar Ambiente**
+   Crie um arquivo `.env`:
+   ```env
+   NODE_ENV=development
+   # API_SECRET=sua-senha-segura (opcional em dev)
+   # GITHUB_TOKEN=seu-token (opcional, para repos privados)
+   ```
 
-## 📡 API Endpoints
+3. **Rodar Servidor**
+   ```bash
+   npm start
+   ```
+   Acesse: `http://localhost:3000/admin`
 
-| Método | Endpoint | Auth | Descrição |
-|--------|----------|------|-----------|
-| GET | `/health` | ❌ | Status do sistema |
-| GET | `/api/projects` | ✅ | Lista projetos |
-| POST | `/api/projects/deploy` | ✅ | Novo deploy |
-| GET | `/api/deploy-status/:jobId` | ✅ | Status do deploy |
-| DELETE | `/api/projects/:id` | ✅ | Remove projeto |
-| GET | `/projects/:id` | ❌ | Acessa projeto |
-| GET | `/admin` | ❌ | Dashboard |
+## ☁️ Deploy no Render.com
 
-## 🔐 Autenticação
+1. Faça push deste repositório para o GitHub.
+2. Crie um novo **Web Service** no Render.
+3. Conecte ao seu repositório.
+4. **Environment Variables:**
+   - `NODE_ENV`: `production`
+   - `API_SECRET`: (Escolha uma senha forte)
+   - `GITHUB_TOKEN`: (Opcional, se precisar clonar repos privados)
+5. **Build Command:** `npm install`
+6. **Start Command:** `npm start`
 
-Envie o header `Authorization: Bearer <API_SECRET>` em todas as requisições autenticadas.
+### 🔑 Autenticação no Dashboard
 
-```bash
-curl -X GET http://localhost:3000/api/projects \
-  -H "Authorization: Bearer sua-api-secret"
-```
+Ao acessar o dashboard em produção (`/admin`), vá na aba **⚙️ Config** e insira a mesma `API_SECRET` que você definiu nas variáveis de ambiente do Render.
 
-## 📦 Deploy de Projeto
+O dashboard salvará a senha no seu navegador e autenticará automaticamente todas as operações de deploy.
 
-```bash
-curl -X POST http://localhost:3000/api/projects/deploy \
-  -H "Authorization: Bearer sua-api-secret" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "projectId": "meu-site",
-    "repoUrl": "https://github.com/user/repo",
-    "branch": "main"
-  }'
-```
+## 📦 Projetos Suportados
 
-## 🎯 Frameworks Suportados
-
-- ✅ Next.js (static export)
-- ✅ Create React App
-- ✅ Vite (React, Vue, Svelte)
-- ✅ Astro
-- ✅ HTML estático
+O sistema detecta automaticamente:
+- ✅ **Next.js** (`npm run build` -> `out`) - *Requer `output: 'export'`*
+- ✅ **Vite** (`npm run build` -> `dist`)
+- ✅ **Create React App** (`npm run build` -> `build`)
+- ✅ **Astro** (`npm run build` -> `dist`)
+- ✅ **HTML Estático** (se tiver `index.html` na raiz)
+- ✅ **Node.js Genérico** (qualquer script `build` no package.json)
 
 ## ⚠️ Limitações (Free Tier)
 
-- RAM: 512MB
-- Deploys: 3/hora
-- Disco: 10GB
-- O serviço "dorme" após inatividade
+- **RAM:** 512MB (Projetos muito pesados podem falhar no build)
+- **Deploys:** Limitado a 3 deploys/hora para economizar recursos.
+- **Sleep:** O serviço entra em hibernação após 15min inativo (o primeiro request pode demorar 50s).
 
-## 🚀 Deploy no Render
+## 🐛 Troubleshooting Comum
 
-1. Push para GitHub
-2. Conecte o repo no [Render Dashboard](https://dashboard.render.com)
-3. Defina `API_SECRET` em Environment
-4. Deploy!
+**Erro 127 (npm not found) ou Build Falhando:**
+- Certifique-se de que o `server.js` está atualizado com a flag `--production=false` no `npm install`. Isso é necessário para que o Render instale ferramentas de build como Vite/Webpack.
+
+**Status: undefined:**
+- Se o deploy falhar drasticamente, o status pode não ser capturado. Verifique os logs do Render Dashboard para detalhes.
