@@ -351,7 +351,7 @@ function runCommand(command, args, cwd, jobId) {
       env: {
         ...process.env,
         PATH: process.env.PATH,
-        NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=400'
+        NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=480'
       }
     });
 
@@ -395,11 +395,14 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
   const projectPath = path.join(projectsRoot, projectId);
   const tempPath = path.join(__dirname, 'temp', nanoid());
 
+  // ✅ INICIALIZA status com valores padrão
   jobStatus.set(jobId, {
     status: 'cloning',
     progress: 10,
     logs: ['🔄 Iniciando deploy...'],
     projectId,
+    url: null,
+    error: null,
     createdAt: new Date().toISOString()
   });
 
@@ -446,12 +449,9 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
         logs: [...jobStatus.get(jobId).logs, '📥 Instalando dependências (prod + dev)...']
       });
 
-      // 🔧 CORREÇÃO: Força instalação de devDependencies
-      // Render não instala devDeps em produção por padrão,
-      // mas build tools (vite, webpack, etc) estão em devDependencies
       await runCommand('npm', [
         'install',
-        '--production=false',  // ← FIX: Força instalação de dev deps
+        '--production=false',
         '--prefer-offline',
         '--no-audit',
         '--no-fund',
@@ -514,6 +514,7 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
     // Cleanup temp
     await fs.remove(tempPath);
 
+    // ✅ SEMPRE define todos os campos no sucesso
     jobStatus.set(jobId, {
       status: 'completed',
       progress: 100,
@@ -523,6 +524,7 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
         `🌐 URL: /projects/${projectId}`
       ],
       url: `/projects/${projectId}`,
+      error: null,
       projectId,
       createdAt: jobStatus.get(jobId).createdAt
     });
@@ -533,6 +535,7 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
   } catch (error) {
     console.error(`❌ Deploy ${projectId} falhou:`, error);
 
+    // ✅ SEMPRE define todos os campos no erro
     jobStatus.set(jobId, {
       status: 'failed',
       progress: 0,
@@ -541,6 +544,7 @@ async function deployProject(projectId, repoUrl, branch = 'main', jobId) {
         `❌ Erro: ${error.message}`,
         IS_RENDER ? '💡 Free tier: 512MB RAM. Projetos grandes podem falhar.' : ''
       ].filter(Boolean),
+      url: null,
       error: error.message,
       projectId,
       createdAt: jobStatus.get(jobId)?.createdAt || new Date().toISOString()
@@ -616,16 +620,31 @@ app.post(
     const { projectId, repoUrl, branch = 'main' } = req.body;
     const jobId = nanoid();
 
+    // ✅ INICIALIZA com TODOS os campos definidos
     jobStatus.set(jobId, {
       status: 'queued',
       progress: 0,
-      logs: ['⏳ Na fila...'],
+      logs: ['⏳ Aguardando na fila...'],
       projectId,
+      url: null,
+      error: null,
       createdAt: new Date().toISOString()
     });
 
+    // ✅ Adiciona tratamento de erro na fila
     deployQueue.add(() => deployProject(projectId, repoUrl, branch, jobId))
-      .catch(() => { });
+      .catch((err) => {
+        console.error(`❌ Erro na fila (${jobId}):`, err);
+        jobStatus.set(jobId, {
+          status: 'failed',
+          progress: 0,
+          logs: ['❌ Erro ao processar deploy: ' + err.message],
+          error: err.message,
+          url: null,
+          projectId,
+          createdAt: jobStatus.get(jobId)?.createdAt || new Date().toISOString()
+        });
+      });
 
     res.json({
       success: true,
@@ -640,13 +659,24 @@ app.post(
 // Status do deploy
 app.get('/api/deploy-status/:jobId', authMiddleware, (req, res) => {
   const status = jobStatus.get(req.params.jobId);
+  
   if (!status) {
     return res.status(404).json({
       error: 'Job não encontrado',
       hint: 'Jobs são mantidos por 1 hora após conclusão'
     });
   }
-  res.json(status);
+  
+  // ✅ SEMPRE retorna estrutura completa com valores padrão
+  res.json({
+    status: status.status || 'unknown',
+    progress: status.progress ?? 0,
+    logs: status.logs || [],
+    projectId: status.projectId || null,
+    url: status.url || null,
+    error: status.error || null,
+    createdAt: status.createdAt || new Date().toISOString()
+  });
 });
 
 // Remove projeto
