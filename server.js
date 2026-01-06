@@ -815,138 +815,512 @@ app.get('/admin/*', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// 12. HOMEPAGE
+// 12. HOMEPAGE - LANDING PAGE PREMIUM
 // ═══════════════════════════════════════════════════════════════════
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  // Conta projetos ativos
+  let projectCount = 0;
+  try {
+    if (await fs.pathExists(projectsRoot)) {
+      const projects = await fs.readdir(projectsRoot);
+      projectCount = projects.filter(p => !p.startsWith('.')).length;
+    }
+  } catch {}
+
   res.send(`
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vercel BR v2.2 - Deploy Simplificado</title>
+  <title>Vercel BR - Plataforma de Deploy Simplificada</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --accent-1: #667eea;
+      --accent-2: #764ba2;
+      --accent-3: #f093fb;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.4);
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.6;
-      padding: 20px;
-      max-width: 900px;
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(102, 126, 234, 0.3), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 50%, rgba(118, 75, 162, 0.2), transparent),
+        radial-gradient(ellipse 50% 30% at 0% 80%, rgba(240, 147, 251, 0.15), transparent);
+      animation: gradientPulse 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes gradientPulse {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Grid pattern overlay */
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    }
+
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
-      background: #f5f5f5;
+      padding: 0 24px;
     }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px;
+
+    /* Hero Section */
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      backdrop-filter: blur(10px);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-1) 50%, var(--accent-3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInUp 0.6s ease-out 0.1s backwards;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 48px;
+      animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeInUp 0.6s ease-out 0.3s backwards;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
       border-radius: 12px;
-      margin-bottom: 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
     }
-    .card { 
-      background: white;
-      border-radius: 8px;
-      padding: 30px;
-      margin: 20px 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1 { font-size: 2.5em; margin-bottom: 10px; }
-    h2 { color: #333; margin-bottom: 15px; }
-    code { 
-      background: #f4f4f4;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.9em;
-    }
-    pre {
-      background: #2d2d2d;
-      color: #f8f8f8;
-      padding: 20px;
-      border-radius: 6px;
-      overflow-x: auto;
-      margin: 15px 0;
-      font-size: 0.85em;
-    }
-    a { color: #667eea; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .badge {
-      display: inline-block;
-      background: #10b981;
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
       color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.85em;
-      margin-left: 10px;
+      box-shadow: 0 4px 24px rgba(102, 126, 234, 0.4);
     }
-    ul { margin-left: 20px; }
-    li { margin: 8px 0; }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Stats Section */
+    .stats {
+      padding: 40px 0 80px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-1);
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 0;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 60px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 40px 32px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* CTA Section */
+    .cta {
+      padding: 100px 0;
+      text-align: center;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 80px 40px;
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+      animation: rotateBg 20s linear infinite;
+    }
+
+    @keyframes rotateBg {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .cta-box h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-box p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      font-size: 1.1rem;
+      position: relative;
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--glass-border);
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-1);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .hero { min-height: 70vh; padding: 40px 20px; }
+      .hero h1 { font-size: 2.5rem; }
+      .hero p { font-size: 1rem; }
+      .btn { padding: 14px 24px; font-size: 0.9rem; }
+      .stat-value { font-size: 2rem; }
+      .section-title { font-size: 1.8rem; }
+      .cta-box { padding: 50px 24px; }
+      .cta-box h2 { font-size: 1.8rem; }
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🚀 Vercel BR v2.2</h1>
-    <p>Plataforma de deploy simplificada e segura</p>
-    <span class="badge">${IS_RENDER ? 'Render.com ✅' : 'Local'}</span>
-    <span class="badge">512MB RAM</span>
-  </div>
-  
-  <div class="card">
-    <h2>🔗 Links Rápidos</h2>
-    <ul>
-      <li><a href="/admin">📊 Dashboard</a></li>
-      <li><a href="/health">💚 Health Check</a></li>
-    </ul>
-  </div>
-  
-  <div class="card">
-    <h2>⚡ Quick Start</h2>
-    <p><strong>1. Configure sua API Key</strong></p>
-    <pre>export API_SECRET="sua-chave-secreta"</pre>
+  <div class="bg-gradient"></div>
+  <div class="grid-pattern"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      ${IS_RENDER ? 'Rodando no Render.com' : 'Ambiente Local'}
+    </div>
     
-    <p><strong>2. Faça um deploy</strong></p>
-    <pre>curl -X POST ${req.protocol}://${req.get('host')}/api/projects/deploy \\
-  -H "Authorization: Bearer \${API_SECRET}" \\
-  -H "Content-Type: application/json" \\
-  -d '{"projectId":"meu-site","repoUrl":"https://github.com/user/repo"}'</pre>
+    <h1>Deploy em<br>segundos.</h1>
     
-    <p><strong>3. Acompanhe o status</strong></p>
-    <pre>curl ${req.protocol}://${req.get('host')}/api/deploy-status/[jobId] \\
-  -H "Authorization: Bearer \${API_SECRET}"</pre>
-  </div>
-  
-  <div class="card">
-    <h2>🎯 Frameworks Suportados</h2>
-    <ul>
-      <li>✅ Next.js (static export)</li>
-      <li>✅ Create React App</li>
-      <li>✅ Vite (React, Vue, Svelte)</li>
-      <li>✅ Astro</li>
-      <li>✅ HTML estático</li>
-    </ul>
-  </div>
-  
-  <div class="card">
-    <h2>📚 API Endpoints</h2>
-    <ul>
-      <li><code>GET /health</code> - Status do sistema</li>
-      <li><code>GET /api/projects</code> - Lista projetos (auth)</li>
-      <li><code>POST /api/projects/deploy</code> - Novo deploy (auth)</li>
-      <li><code>GET /api/deploy-status/:jobId</code> - Status do deploy (auth)</li>
-      <li><code>DELETE /api/projects/:id</code> - Remove projeto (auth)</li>
-      <li><code>GET /projects/:id</code> - Acessa projeto (público)</li>
-    </ul>
-  </div>
-  
-  <div class="card">
-    <h2>⚠️ Limitações (Free Tier)</h2>
-    <ul>
-      <li>RAM: 512MB (projetos grandes podem falhar)</li>
-      <li>Deploys: ${IS_RENDER ? 3 : 5}/hora</li>
-      <li>Disco: 10GB persistente</li>
-      <li>O serviço "dorme" após inatividade</li>
-    </ul>
-  </div>
+    <p>Plataforma self-hosted para deploy de projetos React, Next.js, Vite, Astro e HTML estático. Simples, rápido e gratuito.</p>
+    
+    <div class="hero-buttons">
+      <a href="/admin" class="btn btn-primary">
+        🚀 Acessar Dashboard
+      </a>
+      <a href="/health" class="btn btn-secondary">
+        💚 Status do Sistema
+      </a>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">${projectCount}</div>
+          <div class="stat-label">Projetos Ativos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${IS_RENDER ? '3' : '5'}</div>
+          <div class="stat-label">Deploys/Hora</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">512</div>
+          <div class="stat-label">MB de RAM</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">Projetos Estáticos</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title">Frameworks Suportados</h2>
+      <p class="section-subtitle">Detecta automaticamente o tipo do projeto e faz o build correto</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3>Next.js</h3>
+          <p>Static export automático. Seu projeto Next.js buildado e servido em segundos.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🔥</span>
+          <h3>Vite</h3>
+          <p>React, Vue, Svelte, Vanilla. Build ultrarrápido com Vite out of the box.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🚀</span>
+          <h3>Astro</h3>
+          <p>Sites performáticos com Astro. Zero JavaScript opcional incluído.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">⚛️</span>
+          <h3>Create React App</h3>
+          <p>Suporte completo ao CRA. npm run build e pronto.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📄</span>
+          <h3>HTML Estático</h3>
+          <p>Projetos sem build? Só ter um index.html e está deployado.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🔒</span>
+          <h3>Seguro</h3>
+          <p>Helmet + Rate Limiting. Proteção contra ataques e abuso de recursos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Pronto para começar?</h2>
+        <p>Faça seu primeiro deploy em menos de 1 minuto</p>
+        <a href="/admin" class="btn btn-primary">
+          Ir para o Dashboard →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="/admin">Dashboard</a>
+        <a href="/health">Health</a>
+        <a href="https://github.com" target="_blank">GitHub</a>
+      </div>
+      <p>Vercel BR v2.2 · Node ${process.version} · ${IS_RENDER ? 'Render.com' : 'Local'}</p>
+    </div>
+  </footer>
 </body>
 </html>
   `);
