@@ -659,14 +659,14 @@ app.post(
 // Status do deploy
 app.get('/api/deploy-status/:jobId', authMiddleware, (req, res) => {
   const status = jobStatus.get(req.params.jobId);
-  
+
   if (!status) {
     return res.status(404).json({
       error: 'Job não encontrado',
       hint: 'Jobs são mantidos por 1 hora após conclusão'
     });
   }
-  
+
   // ✅ SEMPRE retorna estrutura completa com valores padrão
   res.json({
     status: status.status || 'unknown',
@@ -826,7 +826,7 @@ app.get('/', async (req, res) => {
       const projects = await fs.readdir(projectsRoot);
       projectCount = projects.filter(p => !p.startsWith('.')).length;
     }
-  } catch {}
+  } catch { }
 
   res.send(`
 <!DOCTYPE html>
@@ -899,10 +899,10 @@ app.get('/', async (req, res) => {
 
     /* Hero Section */
     .hero {
-      min-height: 85vh;
+      min-height: 45vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       text-align: center;
       padding: 60px 20px;
