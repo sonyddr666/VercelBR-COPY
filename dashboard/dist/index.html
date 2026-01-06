@@ -623,16 +623,38 @@
       if (!currentJobId) return;
 
       try {
-        const res = await fetch(`/api/deploy-status/${currentJobId}`);
+        const res = await fetch(`/api/deploy-status/${currentJobId}`, {
+          headers: getAuthHeaders()
+        });
+        
+        // ✅ Trata erro 404 (job expirou)
+        if (res.status === 404) {
+          clearInterval(pollInterval);
+          showToast('Job não encontrado (pode ter expirado)', 'error');
+          document.getElementById('deploy-btn').disabled = false;
+          document.getElementById('deploy-btn').innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
+          return;
+        }
+
         const status = await res.json();
 
-        // Update UI
-        document.getElementById('progress').style.width = `${status.progress}%`;
-        document.getElementById('status-text').textContent = `Status: ${status.status} (${status.progress}%)`;
+        // ✅ GARANTE valores padrão (fallback)
+        const safeStatus = {
+          status: status.status || 'unknown',
+          progress: status.progress ?? 0,
+          logs: status.logs || [],
+          url: status.url || null,
+          error: status.error || null
+        };
+
+        // Update UI com valores seguros
+        document.getElementById('progress').style.width = `${safeStatus.progress}%`;
+        document.getElementById('status-text').textContent = 
+          `Status: ${safeStatus.status} (${safeStatus.progress}%)`;
 
         // Update logs
         const logsEl = document.getElementById('logs');
-        logsEl.innerHTML = status.logs.map(log => {
+        logsEl.innerHTML = safeStatus.logs.map(log => {
           let cls = '';
           if (log.includes('✅')) cls = 'success';
           else if (log.includes('❌')) cls = 'error';
@@ -650,30 +672,34 @@
           building: '🔨',
           deploying: '📤',
           completed: '✅',
-          failed: '❌'
+          failed: '❌',
+          unknown: '❓'
         };
-        document.getElementById('status-icon').textContent = icons[status.status] || '⏳';
+        document.getElementById('status-icon').textContent = icons[safeStatus.status] || '⏳';
         document.getElementById('status-title').textContent =
-          status.status === 'completed' ? 'Deploy Concluído!' :
-            status.status === 'failed' ? 'Deploy Falhou' :
+          safeStatus.status === 'completed' ? 'Deploy Concluído!' :
+            safeStatus.status === 'failed' ? 'Deploy Falhou' :
               'Status do Deploy';
 
         // Check completion
-        if (status.status === 'completed') {
+        if (safeStatus.status === 'completed') {
           clearInterval(pollInterval);
-          document.getElementById('deploy-result').style.display = 'block';
-          document.getElementById('project-link').href = status.url;
+          if (safeStatus.url) {
+            document.getElementById('deploy-result').style.display = 'block';
+            document.getElementById('project-link').href = safeStatus.url;
+          }
           document.getElementById('deploy-btn').disabled = false;
           document.getElementById('deploy-btn').innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
           showToast('Deploy concluído com sucesso!');
-        } else if (status.status === 'failed') {
+        } else if (safeStatus.status === 'failed') {
           clearInterval(pollInterval);
           document.getElementById('deploy-btn').disabled = false;
           document.getElementById('deploy-btn').innerHTML = '<span>🚀</span><span>Iniciar Deploy</span>';
-          showToast('Deploy falhou: ' + status.error, 'error');
+          showToast('Deploy falhou: ' + (safeStatus.error || 'Erro desconhecido'), 'error');
         }
       } catch (error) {
         console.error('Erro ao verificar status:', error);
+        // Não para o polling em caso de erro de rede temporário
       }
     }
 
